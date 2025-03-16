@@ -9,7 +9,11 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     return this.prisma.user.create({
-      data: createUserDto,
+      data: {
+        name: createUserDto.name,
+        email: createUserDto.email,
+        role: createUserDto.role,
+      },
     });
   }
 
@@ -25,7 +29,11 @@ export class UsersService {
     await this.getUser(id);
     return this.prisma.user.update({
       where: { id },
-      data: updateUserDto,
+      data: {
+        name: updateUserDto.name,
+        email: updateUserDto.email,
+        role: updateUserDto.role,
+      },
     });
   }
 
