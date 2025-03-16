@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaClient } from '@prisma/client';
+import { hash } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -12,6 +13,7 @@ export class UsersService {
       data: {
         name: createUserDto.name,
         email: createUserDto.email,
+        password: await hash(createUserDto.password, 10),
         role: createUserDto.role,
       },
     });
@@ -32,6 +34,7 @@ export class UsersService {
       data: {
         name: updateUserDto.name,
         email: updateUserDto.email,
+        password: await hash(updateUserDto.password, 10),
         role: updateUserDto.role,
       },
     });
