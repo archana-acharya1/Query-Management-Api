@@ -1,11 +1,12 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
-import { compare } from 'bcrypt';
+import { compare, hash } from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto, LoginDto } from './auth.controller';
 @Injectable()
@@ -17,24 +18,40 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: registerDto.email },
+    });
+    if (existingUser) {
+      throw new ConflictException('Email already taken');
+    }
+    registerDto.password = await hash(registerDto.password, 10);
+
     const user = await this.usersService.create(registerDto);
     const token = await this.jwtService.signAsync({
       user_id: user.id,
       role: user.role,
     });
 
-    return { token };
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.prisma.user.findFirst({
+    const user = await this.prisma.user.findUnique({
       where: {
         email: loginDto.email,
       },
     });
 
     if (!user) {
-      throw new NotFoundException(`User ${loginDto.email} not found`);
+      throw new NotFoundException(`User $(loginDto.email) not found`);
     }
 
     if (!(await compare(loginDto.password, user.password))) {
@@ -46,6 +63,14 @@ export class AuthService {
       role: user.role,
     });
 
-    return { token };
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 }
