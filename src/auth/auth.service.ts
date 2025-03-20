@@ -18,14 +18,6 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
-    });
-    if (existingUser) {
-      throw new ConflictException('Email already taken');
-    }
-    registerDto.password = await hash(registerDto.password, 10);
-
     const user = await this.usersService.create(registerDto);
     const token = await this.jwtService.signAsync({
       user_id: user.id,
