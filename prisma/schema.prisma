@@ -13,7 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
+model User {
   id String @id @default(uuid())
   name String
   email String @unique
@@ -23,6 +23,7 @@ model User{
   updated_at DateTime @updatedAt
 
   queries Query[]
+  comments Comment[]
 }
  enum Role {
   STUDENT
@@ -38,10 +39,23 @@ model User{
    updated_at DateTime @updatedAt
    user_id String
    user User @relation(fields: [user_id] ,references: [id], onDelete: Cascade)
+   comments Comment[]
  }
 
  enum Status {
   PENDING
   APPROVED
   REJECTED
+ }
+
+ model Comment {
+  id String @id @default(uuid())
+  content String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt 
+  user_id String
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  query_id String
+  query Query @relation(fields: [query_id], references: [id], onDelete: Cascade)
+
  }

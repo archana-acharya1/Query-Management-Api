@@ -23,7 +23,7 @@ export class QueriesService {
     });
 
     if (!query) {
-      throw new NotFoundException(`Query with ID ${id} not found`);
+      throw new NotFoundException(`Query not found`);
     }
     return query;
   }
