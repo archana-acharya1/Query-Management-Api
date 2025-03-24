@@ -1,7 +1,11 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { hash } from 'bcrypt';
 
 @Injectable()
@@ -21,8 +25,27 @@ export class UsersService {
     });
   }
 
-  async findAll() {
-    return this.prisma.user.findMany();
+  async findAll(search?: string, skip?: number, take?: number) {
+    const where: Prisma.UserWhereInput = {
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        ],
+      }),
+    };
+
+    const [users, totalCount] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { created_at: 'desc' },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { totalCount, users };
   }
 
   async findOne(id: string) {

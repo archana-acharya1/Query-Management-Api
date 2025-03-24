@@ -1,12 +1,11 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClient } from '@prisma/client';
-import { compare, hash } from 'bcrypt';
+import { compare } from 'bcrypt';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto, LoginDto } from './auth.controller';
 @Injectable()
@@ -20,8 +19,12 @@ export class AuthService {
   async register(registerDto: RegisterDto) {
     const user = await this.usersService.create(registerDto);
     const token = await this.jwtService.signAsync({
-      user_id: user.id,
-      role: user.role,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
 
     return {
@@ -43,7 +46,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User $(loginDto.email) not found`);
+      throw new NotFoundException(`User ${loginDto.email} not found`);
     }
 
     if (!(await compare(loginDto.password, user.password))) {
@@ -51,8 +54,12 @@ export class AuthService {
     }
 
     const token = await this.jwtService.signAsync({
-      user_id: user.id,
-      role: user.role,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     });
 
     return {

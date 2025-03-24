@@ -10,6 +10,6 @@ export class CreateCommentDto {
   user_id: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   query_id: string;
 }
